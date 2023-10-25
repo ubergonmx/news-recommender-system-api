@@ -12,36 +12,34 @@ logging.basicConfig(
 # Initialize the Flask application
 flask_app = Flask(__name__)
 
+# Error handler for incorrect URL
+@flask_app.errorhandler(ValueError)
+def value_error_handler(e):
+    logging.error(e)
+    return jsonify(error=str(e)), 404
 
 # Define a GET method for "feed" endpoint
 @flask_app.route('/feed', methods=['GET'])
 def feed():
-    # Get the URL from the query parameters
-    url = request.args.get('url')
-    # Parse the URL using newspaper3k
-    article = Article(url)
-    article.download()
-    article.parse()
-    # Return the article as a JSON response
-    return jsonify({
-        'title': article.title,
-        'authors': article.authors,
-        'publish_date': article.publish_date,
-        'top_image': article.top_image,
-        'text': article.text,
-    })
-
-# url = 'https://www.theverge.com/2023/9/27/23892900/microsoft-dall-e-windows-11-paint-cocreator'
-# article = Article(url)
-
-# article.download()
-# article.parse()
-
-# print(article.title)
-# print(article.authors)
-# print(article.publish_date)
-# print(article.top_image)
-# print(article.text)
+    # Try-except block to handle errors
+    try:
+        # Get the URL from the query parameters
+        url = request.args.get('url')
+        # Parse the URL using newspaper3k
+        article = Article(url)
+        article.download()
+        article.parse()
+        # Return the article as a JSON response
+        return jsonify({
+            'title': article.title,
+            'authors': article.authors,
+            'publish_date': article.publish_date,
+            'top_image': article.top_image,
+            'text': article.text,
+        })
+    except Exception as e:
+        logging.error(e)
+        return jsonify(error=str(e)), 404
 
 # Run the app
 if __name__ == '__main__':
