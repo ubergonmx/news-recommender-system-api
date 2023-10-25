@@ -69,7 +69,8 @@ def search():
 # Clean the articles returned by GoogleNews
 def clean_articles(articles):
     # Add limiter to the number of articles returned
-    articles = articles[:10]
+    limiter = 6
+    articles = articles[:limiter]
 
     # Add "body" key to each news article object
     for article in articles:
@@ -85,6 +86,12 @@ def clean_articles(articles):
 
             # Add the "body" key to the article object
             article['body'] = news_article.text
+
+            # Remove the "link" key
+            del article['link']
+
+            # Reformat the "datetime" key to Mmm DD, YYYY
+            article['datetime'] = article['datetime'].strftime("%b %d, %Y")
         except Exception as e:
             logging.error("Error parsing article: %s", str(e))
             continue
