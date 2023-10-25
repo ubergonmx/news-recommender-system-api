@@ -40,20 +40,6 @@ def feed():
         # Return the feed as a JSON response
         return jsonify(results)
 
-        # Get the URL from the query parameters
-        # url = request.args.get('url')
-        # # Parse the URL using newspaper3k
-        # article = Article(url)
-        # article.download()
-        # article.parse()
-        # # Return the article as a JSON response
-        # return jsonify({
-        #     'title': article.title,
-        #     'authors': article.authors,
-        #     'publish_date': article.publish_date,
-        #     'top_image': article.top_image,
-        #     'text': article.text,
-        # })
     except Exception as e:
         logging.error(e)
         return jsonify(error=str(e)), 500
@@ -93,6 +79,26 @@ def clean_articles(articles):
         article['body'] = news_article.text
     
     return articles
+
+# Define a GET method for "parse" endpoint
+@flask_app.route('/parse', methods=['GET'])
+def parse():
+    # Try-except block to handle errors
+    try:
+        # Get the query string from the query parameters
+        url = request.args.get('url')
+
+        # Parse the article using newspaper3k
+        logging.info("Parsing article %s", url)
+        news_article = Article(url)
+        news_article.download()
+        news_article.parse()
+
+        # Return the article as a JSON response
+        return jsonify(news_article.text)
+    except Exception as e:
+        logging.error(e)
+        return jsonify(error=str(e)), 500
 
 # Run the app
 if __name__ == '__main__':
