@@ -87,10 +87,13 @@ def clean_articles(articles):
 
             # Add the "body" key to the article object
             article['body'] = news_article.text
+            # Add the "image" key to the article object
+            article['image'] = news_article.top_image
 
-            # Remove the "date", "desc", "link"  keys
+            # Remove the "date", "desc", "img", "link"  keys
             del article['date']
             del article['desc']
+            del article['img']
             del article['link']
 
             # Reformat the "datetime" key to Mmm DD, YYYY and store to "date"
