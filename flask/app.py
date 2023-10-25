@@ -89,6 +89,8 @@ def clean_articles(articles):
             article['body'] = news_article.text
             # Add the "image" key to the article object
             article['image'] = news_article.top_image
+            # Add the "authors" key to the article object
+            article['authors'] = news_article.authors
 
             # Remove the "date", "desc", "img", "link"  keys
             del article['date']
