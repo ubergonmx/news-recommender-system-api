@@ -1,3 +1,4 @@
+import sys
 from flask import Flask, request, jsonify
 from newspaper import Article
 import logging
