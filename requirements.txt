@@ -2,3 +2,4 @@ Flask
 gunicorn
 newspaper3k
 GoogleNews
+readtime
