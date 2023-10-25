@@ -87,11 +87,15 @@ def clean_articles(articles):
             # Add the "body" key to the article object
             article['body'] = news_article.text
 
-            # Remove the "link" key
+            # Remove the "date", "desc", "link"  keys
+            del article['date']
+            del article['desc']
             del article['link']
 
-            # Reformat the "datetime" key to Mmm DD, YYYY
-            article['datetime'] = article['datetime'].strftime("%b %d, %Y")
+            # Reformat the "datetime" key to Mmm DD, YYYY and store to "date"
+            article['date'] = article.pop['datetime'].strftime("%b %d, %Y")
+            # Rename the "media" key to "source"
+            article['source'] = article.pop['media']
         except Exception as e:
             logging.error("Error parsing article: %s", str(e))
             continue
