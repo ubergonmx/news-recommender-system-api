@@ -13,16 +13,34 @@ logging.basicConfig(
 flask_app = Flask(__name__)
 
 
-url = 'https://www.theverge.com/2023/9/27/23892900/microsoft-dall-e-windows-11-paint-cocreator'
-article = Article(url)
+# Define a GET method for "feed" endpoint
+@flask_app.route('/feed', methods=['GET'])
+def feed():
+    # Get the URL from the query parameters
+    url = request.args.get('url')
+    # Parse the URL using newspaper3k
+    article = Article(url)
+    article.download()
+    article.parse()
+    # Return the article as a JSON response
+    return jsonify({
+        'title': article.title,
+        'authors': article.authors,
+        'publish_date': article.publish_date,
+        'top_image': article.top_image,
+        'text': article.text,
+    })
 
-article.download()
-article.parse()
+# url = 'https://www.theverge.com/2023/9/27/23892900/microsoft-dall-e-windows-11-paint-cocreator'
+# article = Article(url)
 
-print(article.title)
-print(article.authors)
-print(article.publish_date)
-print(article.top_image)
+# article.download()
+# article.parse()
+
+# print(article.title)
+# print(article.authors)
+# print(article.publish_date)
+# print(article.top_image)
 # print(article.text)
 
 # Run the app
