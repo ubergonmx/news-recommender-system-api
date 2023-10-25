@@ -4,6 +4,7 @@ from newspaper import Article
 from GoogleNews import GoogleNews
 import logging
 import requests
+import readtime
 
 # Configure the logging level and format
 logging.basicConfig(
@@ -96,6 +97,9 @@ def clean_articles(articles):
             article['date'] = article.pop['datetime'].strftime("%b %d, %Y")
             # Rename the "media" key to "source"
             article['source'] = article.pop['media']
+
+            # Add the "read_time" key to the article object
+            article['read_time'] = str(readtime.of_text(news_article.text))
         except Exception as e:
             logging.error("Error parsing article: %s", str(e))
             continue
