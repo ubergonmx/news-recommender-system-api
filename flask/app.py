@@ -3,6 +3,7 @@ from flask import Flask, request, jsonify
 from newspaper import Article
 from GoogleNews import GoogleNews
 import logging
+import requests
 
 # Configure the logging level and format
 logging.basicConfig(
@@ -67,16 +68,26 @@ def search():
     
 # Clean the articles returned by GoogleNews
 def clean_articles(articles):
+    # Add limiter to the number of articles returned
+    articles = articles[:10]
+
     # Add "body" key to each news article object
     for article in articles:
-        # Parse the article using newspaper3k
-        logging.info("Parsing article %s", article['link'])
-        news_article = Article(article['link'])
-        news_article.download()
-        news_article.parse()
+        try:
+            # Get the final URL for the article
+            final_url = requests.get('http://' + article['link']).url
 
-        # Add the "body" key to the article object
-        article['body'] = news_article.text
+            # Parse the article using newspaper3k
+            logging.info("Parsing article %s", final_url)
+            news_article = Article(final_url)
+            news_article.download()
+            news_article.parse()
+
+            # Add the "body" key to the article object
+            article['body'] = news_article.text
+        except Exception as e:
+            logging.error("Error parsing article: %s", str(e))
+            continue
     
     return articles
 
@@ -88,9 +99,12 @@ def parse():
         # Get the query string from the query parameters
         url = request.args.get('url')
 
+        # Get the final URL for the article
+        final_url = requests.get('http://' + url).url
+
         # Parse the article using newspaper3k
-        logging.info("Parsing article %s", url)
-        news_article = Article(url)
+        logging.info("Parsing article %s", final_url)
+        news_article = Article(final_url)
         news_article.download()
         news_article.parse()
 
