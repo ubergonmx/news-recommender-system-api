@@ -25,7 +25,13 @@ An NRS API built with Flask/Python for NewsMead mobile app.
 pip install -r requirements.txt
 ```
 
-2. Run Flask
+2. Go to `/flask` directory
+
+```bash
+cd flask
+```
+
+3. Run Flask
 
 ```bash
 flask run
