@@ -2,6 +2,7 @@ import sys
 from flask import Flask, request, jsonify
 from newspaper import Article
 from GoogleNews import GoogleNews
+from newsapi import NewsApiClient
 import logging
 import requests
 import readtime
@@ -14,10 +15,14 @@ logging.basicConfig(
 )
 
 # Configure the GoogleNews client
-googlenews = GoogleNews(lang='en')
+googlenews = GoogleNews(lang="en")
+
+# Configure the NewsAPI client
+newsapi = NewsApiClient(api_key="13328281630540aaa6c2750b76b5ee12")
 
 # Initialize the Flask application
 flask_app = Flask(__name__)
+
 
 # Error handler for incorrect URL
 @flask_app.errorhandler(ValueError)
@@ -25,18 +30,38 @@ def value_error_handler(e):
     logging.error(e)
     return jsonify(error=str(e)), 404
 
+
+# Define a GET method for "top" endpoint
+@flask_app.route("/top", methods=["GET"])
+def top():
+    # Try-except block to handle errors
+    try:
+        # Get the country string from the query parameters
+        country = request.args.get("country")
+
+        # Get the top headlines from NewsAPI
+        logging.info("Getting top headlines for %s", country)
+        top_headlines = newsapi.get_top_headlines(country=country, language="en")
+
+        # Return the results as a JSON response
+        return jsonify(top_headlines["articles"])
+    except Exception as e:
+        logging.error(e)
+        return jsonify(error=str(e)), 500
+
+
 # Define a GET method for "feed" endpoint
-@flask_app.route('/feed', methods=['GET'])
+@flask_app.route("/feed", methods=["GET"])
 def feed():
     # Try-except block to handle errors
     try:
         # Get feed from Google News
-        googlenews.get_news('recent news')
+        googlenews.get_news("recent news")
 
         # Store results
         results = clean_articles(googlenews.results())
 
-        # Clear GoogleNews results 
+        # Clear GoogleNews results
         googlenews.clear()
 
         # Return the feed as a JSON response
@@ -45,15 +70,15 @@ def feed():
     except Exception as e:
         logging.error(e)
         return jsonify(error=str(e)), 500
-    
+
 
 # Define a GET method for "search" endpoint
-@flask_app.route('/search', methods=['GET'])
+@flask_app.route("/search", methods=["GET"])
 def search():
     # Try-except block to handle errors
     try:
         # Get the query string from the query parameters
-        query = request.args.get('q')
+        query = request.args.get("q")
         # Get the top 5 results from Google News
         googlenews.search(query)
         result = clean_articles(googlenews.result())
@@ -66,7 +91,8 @@ def search():
     except Exception as e:
         logging.error(e)
         return jsonify(error=str(e)), 500
-    
+
+
 # Clean the articles returned by GoogleNews
 def clean_articles(articles):
     # Add limiter to the number of articles returned
@@ -77,7 +103,7 @@ def clean_articles(articles):
     for article in articles:
         try:
             # Get the final URL for the article
-            final_url = requests.get('http://' + article['link']).url
+            final_url = requests.get("http://" + article["link"]).url
 
             # Parse the article using newspaper3k
             logging.info("Parsing article %s", final_url)
@@ -86,42 +112,43 @@ def clean_articles(articles):
             news_article.parse()
 
             # Add the "body" key to the article object
-            article['body'] = news_article.text
+            article["body"] = news_article.text
             # Add the "image" key to the article object
-            article['image'] = news_article.top_image
+            article["image"] = news_article.top_image
             # Add the "authors" key to the article object
-            article['authors'] = news_article.authors
+            article["authors"] = news_article.authors
             # Reformat the "datetime" key to Mmm DD, YYYY and store to "date"
-            article['date'] = article['datetime'].strftime("%b %d, %Y")
+            article["date"] = article["datetime"].strftime("%b %d, %Y")
             # Add the "source" key to the article object
-            article['source'] = article['media']        
+            article["source"] = article["media"]
             # Add the "read_time" key to the article object
-            article['read_time'] = str(readtime.of_text(news_article.text))
+            article["read_time"] = str(readtime.of_text(news_article.text))
 
             # Remove unnecessary keys
-            del article['datetime']
-            del article['desc']
-            del article['img']
-            del article['link']
-            del article['media']
-            del article['site']
-            
+            del article["datetime"]
+            del article["desc"]
+            del article["img"]
+            del article["link"]
+            del article["media"]
+            del article["site"]
+
         except Exception as e:
             logging.error("Error parsing article: %s", str(e))
             continue
-    
+
     return articles
 
+
 # Define a GET method for "parse" endpoint
-@flask_app.route('/parse', methods=['GET'])
+@flask_app.route("/parse", methods=["GET"])
 def parse():
     # Try-except block to handle errors
     try:
         # Get the query string from the query parameters
-        url = request.args.get('url')
+        url = request.args.get("url")
 
         # Get the final URL for the article
-        final_url = requests.get('http://' + url).url
+        final_url = requests.get("http://" + url).url
 
         # Parse the article using newspaper3k
         logging.info("Parsing article %s", final_url)
@@ -135,7 +162,8 @@ def parse():
         logging.error(e)
         return jsonify(error=str(e)), 500
 
+
 # Run the app
-if __name__ == '__main__':
+if __name__ == "__main__":
     logging.info("Starting Flask app, listening on port %d", 8000)
-    flask_app.run(host='0.0.0.0', port=8000)
+    flask_app.run(host="0.0.0.0", port=8000)
