@@ -1,5 +1,6 @@
-Flask
-gunicorn
-newspaper3k
-GoogleNews
-readtime
+Flask==3.0.0
+gunicorn==21.2.0
+newspaper3k==0.2.8
+GoogleNews==1.6.10
+readtime==3.0.0
+newsapi-python==0.2.7
