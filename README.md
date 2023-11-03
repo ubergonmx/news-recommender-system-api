@@ -1,6 +1,6 @@
 # News Recommender System API
 
-An NRS API built with Flask/Python for NewsMead mobile app.
+A news recommender API built with Flask/Python for NewsMead mobile app.
 
 ## Tech Stack
 
@@ -10,7 +10,9 @@ An NRS API built with Flask/Python for NewsMead mobile app.
 
 ## API Endpoints
 
-**GET** method
+API URL: https://newsmead.azurewebsites.net/
+
+List of **GET** endpoints:
 
 - `/feed` - returns articles scraped from Google News
 - `/top` - returns top headline articles from News API
