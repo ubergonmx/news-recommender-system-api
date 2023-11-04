@@ -1,3 +1,4 @@
+import datetime
 import sys
 from flask import Flask, request, jsonify
 from newspaper import Article
@@ -186,6 +187,28 @@ def date():
 
         # Return the results as a JSON response
         return jsonify(result)
+    except Exception as e:
+        logging.error(e)
+        return jsonify(error=str(e)), 500
+
+
+# Define a GET method for "status" endpoint
+@flask_app.route("/status", methods=["GET"])
+def status():
+    # Try-except block to handle errors
+    try:
+        # Show date and time, Python version, and memory usage
+        logging.info("Getting system status")
+        logging.info("Date and time: %s", datetime.now())
+        logging.info("Python version: %s", sys.version)
+
+        # Return as a JSON response
+        return jsonify(
+            {
+                "date and time": str(datetime.now()),
+                "python version": sys.version,
+            }
+        )
     except Exception as e:
         logging.error(e)
         return jsonify(error=str(e)), 500
