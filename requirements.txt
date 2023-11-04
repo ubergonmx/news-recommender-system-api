@@ -4,4 +4,4 @@ newspaper3k==0.2.8
 GoogleNews==1.6.10
 readtime==3.0.0
 newsapi-python==0.2.7
-recommenders==1.1.1
+recommenders
