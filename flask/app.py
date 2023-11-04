@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 import sys
 from flask import Flask, request, jsonify
 from newspaper import Article
