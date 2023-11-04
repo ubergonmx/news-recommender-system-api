@@ -42,9 +42,10 @@ def top():
         # Get the top headlines from NewsAPI
         logging.info("Getting top headlines for %s", country)
         top_headlines = newsapi.get_top_headlines(country=country, language="en")
+        result = top_headlines["articles"]
 
         # Return the results as a JSON response
-        return jsonify(top_headlines["articles"])
+        return jsonify(result)
     except Exception as e:
         logging.error(e)
         return jsonify(error=str(e)), 500
@@ -158,6 +159,33 @@ def parse():
 
         # Return the article as a JSON response
         return jsonify(news_article.text)
+    except Exception as e:
+        logging.error(e)
+        return jsonify(error=str(e)), 500
+
+
+# Define a GET method for "date" endpoint
+@flask_app.route("/date", methods=["GET"])
+def date():
+    # Try-except block to handle errors
+    try:
+        # Get the query string from the query parameters
+        date = request.args.get("date")
+
+        # Get the top headlines from NewsAPI
+        logging.info("Getting top headlines for %s", date)
+        top_headlines = newsapi.get_top_headlines(
+            country="us", language="en", page_size=100
+        )
+        result = top_headlines["articles"]
+
+        # Filter the results by date
+        result = [
+            article for article in result if article["publishedAt"].startswith(date)
+        ]
+
+        # Return the results as a JSON response
+        return jsonify(result)
     except Exception as e:
         logging.error(e)
         return jsonify(error=str(e)), 500
