@@ -14,6 +14,7 @@ from recommenders.models.newsrec.models.naml import NAMLModel
 from recommenders.models.newsrec.io.mind_all_iterator import MINDAllIterator
 
 from scraper.database_utils import db_path, get_articles
+from scraper.scraper import NewsScraper, Provider
 
 # Configure the logging level and format
 logging.basicConfig(
@@ -89,9 +90,10 @@ def feed():
 def scrape():
     # Try-except block to handle errors
     try:
-        return jsonify("Scraping is disabled for now. Please use the feed endpoint.")
-        # with NewsScraper(Provider.GMANews) as scraper:
-        #     scraper.scrape()
+        scraper = NewsScraper(Provider.GMANews, conn)
+        scraper.scrape()
+
+        return jsonify({"status": "ok"})
     except Exception as e:
         logging.error(e)
         return jsonify(error=str(e)), 500

@@ -1,7 +1,7 @@
 from concurrent.futures import ThreadPoolExecutor
 from bs4 import BeautifulSoup
 from time import sleep
-from database_utils import insert_data, db_path
+from .database_utils import insert_data, db_path
 import requests, os, sqlite3
 from datetime import datetime
 from enum import Enum
@@ -29,9 +29,13 @@ class Category(Enum):
 
 
 class NewsScraper:
-    def __init__(self, provider):
+    def __init__(self, provider, conn=None):
         self.provider = provider
-        self.conn = sqlite3.connect(db_path())
+        self.conn = (
+            sqlite3.connect(db_path(), check_same_thread=False)
+            if conn is None
+            else conn
+        )
 
     def fetch_rss(self, url):
         # Download the RSS feed
@@ -115,8 +119,8 @@ class NewsScraper:
 
             article["read_time"] = str(readtime.of_text(news_article.text))
 
-            # Sleep for 5 seconds
-            sleep(5)
+            # Sleep for 30 seconds
+            sleep(30)
 
         except Exception as e:
             # logging.error("Error parsing article: %s", str(e))
@@ -211,7 +215,7 @@ class GMANews(NewsScraper):
 
     def scrape(self):
         articles = self.parse_rss(self.url, self.category_map)
-        article_limit = 15
+        article_limit = 20
         i = 0
         for article in articles[:article_limit]:
             i += 1

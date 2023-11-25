@@ -1,5 +1,11 @@
 import sqlite3, os
-from database_utils import table_exists, show_table, run_query, db_exists
+from database_utils import (
+    table_exists,
+    show_table,
+    drop_table,
+    create_article_table,
+    db_name,
+)
 
 # db_name = input("Enter database name: ") + ".sqlite"
 # if not db_exists(db_name):
@@ -19,25 +25,7 @@ table_name = input("Enter table name: ")
 
 if not (table_exists(conn, table_name)):
     if input(f'Table "{table_name}" does not exist. Create? (y/n): ') == "y":
-        # Create the table with the following columns
-        # article_id, date, category, source, title, author, url, body, image_url, read_time
-        create = f"""
-            CREATE TABLE {table_name}
-            (
-                article_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                date TEXT,
-                category TEXT,
-                source TEXT,
-                title TEXT,
-                author TEXT,
-                url TEXT,
-                body TEXT,
-                image_url TEXT,
-                read_time TEXT
-            );
-            """
-
-        run_query(conn, create)
+        create_article_table(conn, table_name)
     else:
         conn.close()
         quit()
@@ -51,24 +39,8 @@ while True:
         print(show_table(conn, table_name))
     elif ans == "2":
         if input("This process is NOT reversible. Are you sure (y/n): ") == "y":
-            delete = f"DROP TABLE {table_name}"
-            run_query(conn, delete)
-            create = f"""
-                CREATE TABLE {table_name}
-                (
-                    article_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    date TEXT,
-                    category TEXT,
-                    source TEXT,
-                    title TEXT,
-                    author TEXT,
-                    url TEXT,
-                    body TEXT,
-                    image_url TEXT,
-                    read_time TEXT
-                );
-                """
-            run_query(conn, create)
+            drop_table(conn, table_name)
+            create_article_table(conn, table_name)
 
         print(f'Reset "{table_name}".')
         conn.close()

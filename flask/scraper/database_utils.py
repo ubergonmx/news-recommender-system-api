@@ -36,11 +36,41 @@ def table_exists(conn, table_name):
     )
 
 
+def create_article_table(conn, table_name):
+    # Create the table with the following columns
+    # article_id, date, category, source, title, author, url, body, image_url, read_time
+    create = f"""
+        CREATE TABLE {table_name}
+        (
+            article_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            date TEXT,
+            category TEXT,
+            source TEXT,
+            title TEXT,
+            author TEXT,
+            url TEXT,
+            body TEXT,
+            image_url TEXT,
+            read_time TEXT
+        );
+        """
+    run_query(conn, create)
+
+
+def drop_table(conn, table_name):
+    delete = f"DROP TABLE {table_name}"
+    run_query(conn, delete)
+
+
 def show_table(conn, table_name):
     return conn.execute(f"SELECT * FROM {table_name}").fetchall()
 
 
 def insert_data(conn, data, insert_query=db_insert_query):
+    # Create the table if it does not exist
+    if not table_exists(conn, db_tbl_articles):
+        create_article_table(conn, db_tbl_articles)
+
     conn.cursor().executemany(insert_query, data)
     conn.commit()
 
