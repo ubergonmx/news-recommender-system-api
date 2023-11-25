@@ -217,6 +217,7 @@ def parse():
             {
                 # "authors": news_article.authors,
                 "body": news_article.text,
+                "image": news_article.top_image,
                 # "time": news_article.publish_date,
                 # "source": news_article.source_url,
             }
@@ -264,7 +265,7 @@ def status():
         logging.info("Python version: %s", sys.version)
         logging.info("Memory usage (app): %s", sys.getsizeof(flask_app))
         # logging.info("Memory usage (conn): %s", sys.getsizeof(conn))
-        logging.info("SQLite db path: %s", db_path())
+        # logging.info("SQLite db path: %s", db_path())
 
         # Return as a JSON response
         return jsonify(
@@ -273,7 +274,7 @@ def status():
                 "python version": sys.version,
                 "memory usage (app)": str(sys.getsizeof(flask_app)),
                 # "memory usage (conn)": str(sys.getsizeof(conn)),
-                "sqlite db path": db_path(),
+                # "sqlite db path": db_path(),
             }
         )
     except Exception as e:
