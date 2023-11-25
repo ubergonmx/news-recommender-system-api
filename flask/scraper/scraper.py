@@ -73,7 +73,6 @@ class NewsScraper:
 
     def scrape_article(self, article):
         try:
-            print("Parsing article ", article["url"])
             response = requests.get(article["url"])
 
             # Parse the HTML document with BeautifulSoup to get the author
@@ -105,11 +104,15 @@ class NewsScraper:
             # Add the article's body, author, and read time to the dictionary
             article["body"] = news_article.text
             article["author"] = (
-                author.strip().title()
-                if author is not None
-                and news_article.authors[0] != author.strip().title()
-                else news_article.authors[0].strip().title()
+                author.strip()
+                if author is not None and news_article.authors[0] != author.strip()
+                else news_article.authors[0].strip()
             )
+
+            # Check if the author is all caps, convert to title case
+            if article["author"].isupper():
+                article["author"] = article["author"].title()
+
             article["read_time"] = str(readtime.of_text(news_article.text))
 
             # Sleep for 1 second
@@ -209,8 +212,10 @@ class GMANews(NewsScraper):
     def scrape(self):
         articles = self.parse_rss(self.url, self.category_map)
 
-        # for article in articles:
-        for article in articles[:2]:
+        i = 0  # Counter for the number of articles
+        for article in articles[:10]:
+            i += 1
+            print("Parsing article #", i, ": ", article["url"], sep="")
             success = self.scrape_article(article)
             # Remove the article from the list if it was not successfully parsed
             if not success:
