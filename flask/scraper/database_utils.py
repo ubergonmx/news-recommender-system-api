@@ -20,6 +20,10 @@ def run_query(conn, query):
     conn.commit()
 
 
+def get_articles(conn):
+    return conn.execute(f"SELECT * FROM {db_tbl_articles}").fetchall()
+
+
 def table_exists(conn, table_name):
     return (
         conn.cursor()

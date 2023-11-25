@@ -1,4 +1,5 @@
 from datetime import datetime
+import sqlite3
 import sys
 from flask import Flask, request, jsonify
 from newspaper import Article
@@ -12,6 +13,8 @@ from recommenders.models.newsrec.newsrec_utils import prepare_hparams
 from recommenders.models.newsrec.models.naml import NAMLModel
 from recommenders.models.newsrec.io.mind_all_iterator import MINDAllIterator
 
+from scraper.database_utils import db_path, get_articles
+
 # Configure the logging level and format
 logging.basicConfig(
     level=logging.INFO,
@@ -24,6 +27,9 @@ googlenews = GoogleNews(lang="en")
 
 # Configure the NewsAPI client
 newsapi = NewsApiClient(api_key="13328281630540aaa6c2750b76b5ee12")
+
+# Connect to the SQLite database
+conn = sqlite3.connect(db_path(), check_same_thread=False)
 
 # Initialize the Flask application
 flask_app = Flask(__name__)
@@ -61,17 +67,11 @@ def top():
 def feed():
     # Try-except block to handle errors
     try:
-        # Get feed from Google News
-        googlenews.get_news("recent news")
-
-        # Store results
-        results = clean_articles(googlenews.results())
-
-        # Clear GoogleNews results
-        googlenews.clear()
+        # Get articles from the database
+        articles = get_articles(conn)
 
         # Return the feed as a JSON response
-        return jsonify(results)
+        return jsonify(clean_articles_db(articles))
 
     except Exception as e:
         logging.error(e)
@@ -97,6 +97,28 @@ def search():
     except Exception as e:
         logging.error(e)
         return jsonify(error=str(e)), 500
+
+
+# Clean the articles from db
+def clean_articles_db(articles):
+    cleaned_articles = []
+
+    # date, category, source, title, author, url, body, image_url, read_time
+
+    for article in articles:
+        cleaned_articles.append(
+            {
+                "date": article[1],
+                "category": article[2],
+                "source": article[3],
+                "title": article[4],
+                "author": article[5],
+                "url": article[6],
+                "body": article[7],
+                "image_url": article[8],
+                "read_time": article[9],
+            }
+        )
 
 
 # Clean the articles returned by GoogleNews
