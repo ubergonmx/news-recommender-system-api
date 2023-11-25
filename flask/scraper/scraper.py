@@ -50,6 +50,13 @@ class NewsScraper:
         # Return the root element
         return root
 
+    def parse_date(self, date):
+        # Parse the date
+        date = datetime.strptime(date, "%a, %d %b %Y %H:%M:%S %z")
+
+        # Return the date in the format Nov 01, 2020
+        return date.strftime("%b %d, %Y")
+
     def scrape(self):
         if self.provider == Provider.GMANews:
             return GMANews(self.conn).scrape()
@@ -72,27 +79,28 @@ class NewsScraper:
             # Parse the HTML document with BeautifulSoup to get the author
             soup = BeautifulSoup(response.content, "html.parser")
             author = soup.find("meta", {"name": "author"})
+            if author is not None:
+                author = author.get("content")
+                if "," in author:
+                    author = author.split(",")[0]
+                author = author.strip()
 
-            print("Progress - parsed author")
+            else:
+                author = None
 
             # Parse the article using newspaper3k
             news_article = Article(response.url)
             news_article.download()
             news_article.parse()
 
-            print("Progress - parsed article (newspaper3k)")
-
             # Add the article's body, author, and read time to the dictionary
             article["body"] = news_article.text
             article["author"] = (
-                author if news_article.authors[0] != author else news_article.authors[0]
+                author.strip().title()
+                if author is not None and news_article.authors[0] != author
+                else news_article.authors[0].strip().title()
             )
             article["read_time"] = str(readtime.of_text(news_article.text))
-
-            print("Progress - added body, author, and read time")
-
-            # Print the article
-            print(article)
 
             # Sleep for 1 second
             sleep(1)
@@ -102,16 +110,21 @@ class NewsScraper:
             print("Error parsing article: ", str(e))
 
     def insert_articles(self, articles):
+        print("Inserting articles...")
         data = []
         for article in articles:
             # Convert the article to a tuple and add it to the data list
+            # (date, category, source, title, author, url, body, image_url, read_time)
             data.append(
                 (
+                    article["date"],
+                    article["category"],
+                    article["source"],
                     article["title"],
-                    article["link"],
-                    article["description"],
-                    article["body"],
                     article["author"],
+                    article["url"],
+                    article["body"],
+                    article["image_url"],
                     article["read_time"],
                 )
             )
@@ -140,6 +153,7 @@ class GMANews(NewsScraper):
 
     def parse_rss(self, url, category_map):
         articles = []
+        reversed_category_map = {v: k for k, v in category_map.items()}
 
         # Fetch the RSS feed for each category
         for category in category_map.values():
@@ -164,11 +178,11 @@ class GMANews(NewsScraper):
                 # Create a dictionary for each article
                 article = {
                     "title": title,
-                    "category": category,
+                    "category": reversed_category_map[category].value,
                     "source": Provider.GMANews.value,
                     "url": link,
                     # "description": description,
-                    "date": pub_date,
+                    "date": self.parse_date(pub_date),
                     "image_url": image_url,
                 }
 
@@ -180,17 +194,12 @@ class GMANews(NewsScraper):
     def scrape(self):
         articles = self.parse_rss(self.url, self.category_map)
 
-        # Use a ThreadPoolExecutor to parallelize the scraping process
-        # with ThreadPoolExecutor(max_workers=4) as executor:
-        #     # Submit each article to the executor
-        #     for article in articles:
-        #         executor.submit(self.scrape_article, article)
-
-        for article in articles:
+        # for article in articles:
+        for article in articles[:2]:
             self.scrape_article(article)
 
         # Insert the articles to the database
-        self.insert_articles(articles)
+        self.insert_articles(articles[:2])
 
         print("Done scraping GMANews")
 
