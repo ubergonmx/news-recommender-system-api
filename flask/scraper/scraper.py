@@ -1,12 +1,13 @@
 from concurrent.futures import ThreadPoolExecutor
 from bs4 import BeautifulSoup
 from time import sleep
-from database_utils import insert_data
+from database_utils import insert_data, db_path
 import requests, os, sqlite3
 from datetime import datetime
 from enum import Enum
 import xml.etree.ElementTree as ET
 from newspaper import Article
+import readtime
 
 
 class Provider(Enum):
@@ -30,6 +31,7 @@ class Category(Enum):
 class NewsScraper:
     def __init__(self, provider):
         self.provider = provider
+        self.conn = sqlite3.connect(db_path())
 
     def fetch_rss(self, url):
         # Download the RSS feed
@@ -63,21 +65,44 @@ class NewsScraper:
             raise Exception("Invalid provider")
 
     def scrape_article(self, article):
-        # Use Newspaper3k to download and parse the article
         try:
-            # Get the final URL for the article
+            print("Parsing article ", article["url"])
             response = requests.get(article["url"])
+
+            # Parse the HTML document with BeautifulSoup to get the author
+            soup = BeautifulSoup(response.content, "html.parser")
+            author = soup.find("meta", {"name": "author"})
+
+            # Parse the article using newspaper3k
             news_article = Article(response)
             news_article.download()
             news_article.parse()
 
-            # Add the article's body and author to the dictionary
+            # Add the article's body, author, and read time to the dictionary
             article["body"] = news_article.text
-            article["author"] = news_article.authors[0]
+            article["author"] = (
+                author if news_article.authors[0] != author else news_article.authors[0]
+            )
+            article["read_time"] = str(readtime.of_text(news_article.text))
+
+            # Insert the article to the database
+            insert_data(conn=self.conn, data=[article])
+
+            # Print the article
+            print(article)
+
+            # Sleep for 1 minute
+            sleep(60)
 
         except Exception as e:
             # logging.error("Error parsing article: %s", str(e))
-            print("Error parsing article: %s", str(e))
+            print("Error parsing article: ", str(e))
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.conn.close()
 
 
 class GMANews(NewsScraper):
@@ -104,7 +129,7 @@ class GMANews(NewsScraper):
             for item in root.findall(".//item"):
                 title = item.find("title").text
                 link = item.find("link").text
-                description = item.find("description").text
+                # description = item.find("description").text
                 pub_date = item.find("pubDate").text
 
                 # Extracting media content URL (image URL)
@@ -129,7 +154,6 @@ class GMANews(NewsScraper):
 
                 # Append the dictionary to the list of articles
                 articles.append(article)
-                print(article)
 
         return articles
 
@@ -137,10 +161,13 @@ class GMANews(NewsScraper):
         articles = self.parse_rss(self.url, self.category_map)
 
         # Use a ThreadPoolExecutor to parallelize the scraping process
-        with ThreadPoolExecutor(max_workers=4) as executor:
-            # Submit each article to the executor
-            for article in articles:
-                executor.submit(self.scrape_article, article)
+        # with ThreadPoolExecutor(max_workers=4) as executor:
+        #     # Submit each article to the executor
+        #     for article in articles:
+        #         executor.submit(self.scrape_article, article)
+
+        for article in articles:
+            self.scrape_article(article)
 
     def scrape_article_custom(self, article):
         # Download the article
@@ -150,6 +177,9 @@ class GMANews(NewsScraper):
         if response.status_code == 200:
             # Parse the HTML document
             soup = BeautifulSoup(response.content, "html.parser")
+
+            # Get author in meta tag
+            author = soup.find("meta", {"name": "author"})
 
             # Extract the article's body
             body = soup.find("div", {"class": "article-content"})
@@ -162,15 +192,16 @@ class GMANews(NewsScraper):
             # Add the body and author to the article dictionary
             article["body"] = body
             article["author"] = author
+            article["read_time"] = str(readtime.of_text(body))
 
             # Insert the article to the database
-            insert_data(article)
+            insert_data(conn=self.conn, data=[article])
 
             # Print the article
             print(article)
 
-            # Sleep for 1 second
-            sleep(1)
+            # Sleep for 1 minute
+            sleep(60)
 
 
 class Philstar:
@@ -194,5 +225,5 @@ class Inquirer:
 
 
 # Test
-scraper = NewsScraper(Provider.GMANews)
-scraper.scrape()
+with NewsScraper(Provider.GMANews) as scraper:
+    scraper.scrape()
