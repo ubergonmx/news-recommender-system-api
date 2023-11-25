@@ -20,10 +20,20 @@ table_name = input("Enter table name: ")
 if not (table_exists(conn, table_name)):
     if input(f'Table "{table_name}" does not exist. Create? (y/n): ') == "y":
         # Create the table with the following columns
-        # article_id, title, date, url, author, category, content, image_url
+        # article_id, date, category, source, title, author, url, body, image_url
         create = f"""
             CREATE TABLE {table_name}
-            (article_id INTEGER PRIMARY KEY, title VARCHAR, date DATE, url VARCHAR, author VARCHAR, category VARCHAR, content VARCHAR, image_url VARCHAR)
+            (
+                article_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                date TEXT,
+                category TEXT,
+                source TEXT,
+                title TEXT,
+                author TEXT,
+                url TEXT,
+                body TEXT,
+                image_url TEXT
+            );
             """
 
         run_query(conn, create)
