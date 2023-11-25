@@ -29,8 +29,8 @@ googlenews = GoogleNews(lang="en")
 # Configure the NewsAPI client
 newsapi = NewsApiClient(api_key="13328281630540aaa6c2750b76b5ee12")
 
-# Connect to the SQLite database
-conn = sqlite3.connect(db_path(), check_same_thread=False)
+# # Connect to the SQLite database
+# conn = sqlite3.connect(db_path(), check_same_thread=False)
 
 # Initialize the Flask application
 flask_app = Flask(__name__)
@@ -64,39 +64,39 @@ def top():
 
 
 # Define a GET method for "feed" endpoint
-@flask_app.route("/feed", methods=["GET"])
-def feed():
-    # Try-except block to handle errors
-    try:
-        # Get articles from the database
-        articles = get_articles(conn)
+# @flask_app.route("/feed", methods=["GET"])
+# def feed():
+#     # Try-except block to handle errors
+#     try:
+#         # Get articles from the database
+#         articles = get_articles(conn)
 
-        # Return the feed as a JSON response
-        return jsonify(
-            {
-                "status": "ok",
-                "totalResults": len(articles),
-                "articles": clean_articles_db(articles),
-            }
-        )
+#         # Return the feed as a JSON response
+#         return jsonify(
+#             {
+#                 "status": "ok",
+#                 "totalResults": len(articles),
+#                 "articles": clean_articles_db(articles),
+#             }
+#         )
 
-    except Exception as e:
-        logging.error(e)
-        return jsonify(error=str(e)), 500
+#     except Exception as e:
+#         logging.error(e)
+#         return jsonify(error=str(e)), 500
 
 
 # Define a GET method for "scrape" endpoint
-@flask_app.route("/scrape", methods=["GET"])
-def scrape():
-    # Try-except block to handle errors
-    try:
-        scraper = NewsScraper(Provider.GMANews, conn)
-        scraper.scrape()
+# @flask_app.route("/scrape", methods=["GET"])
+# def scrape():
+#     # Try-except block to handle errors
+#     try:
+#         scraper = NewsScraper(Provider.GMANews, conn)
+#         scraper.scrape()
 
-        return jsonify({"status": "ok"})
-    except Exception as e:
-        logging.error(e)
-        return jsonify(error=str(e)), 500
+#         return jsonify({"status": "ok"})
+#     except Exception as e:
+#         logging.error(e)
+#         return jsonify(error=str(e)), 500
 
 
 # Define a GET method for "search" endpoint
@@ -261,7 +261,7 @@ def status():
         logging.info("Date and time: %s", datetime.now())
         logging.info("Python version: %s", sys.version)
         logging.info("Memory usage (app): %s", sys.getsizeof(flask_app))
-        logging.info("Memory usage (conn): %s", sys.getsizeof(conn))
+        # logging.info("Memory usage (conn): %s", sys.getsizeof(conn))
         logging.info("SQLite db path: %s", db_path())
 
         # Return as a JSON response
@@ -270,7 +270,7 @@ def status():
                 "date and time": str(datetime.now()),
                 "python version": sys.version,
                 "memory usage (app)": str(sys.getsizeof(flask_app)),
-                "memory usage (conn)": str(sys.getsizeof(conn)),
+                # "memory usage (conn)": str(sys.getsizeof(conn)),
                 "sqlite db path": db_path(),
             }
         )
