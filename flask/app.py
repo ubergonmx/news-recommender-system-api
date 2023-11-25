@@ -7,6 +7,10 @@ from newsapi import NewsApiClient
 import logging
 import requests
 import readtime
+from recommenders.models.deeprec.deeprec_utils import download_deeprec_resources
+from recommenders.models.newsrec.newsrec_utils import prepare_hparams
+from recommenders.models.newsrec.models.naml import NAMLModel
+from recommenders.models.newsrec.io.mind_all_iterator import MINDAllIterator
 
 # Configure the logging level and format
 logging.basicConfig(
@@ -100,6 +104,9 @@ def clean_articles(articles):
     # Add limiter to the number of articles returned
     limiter = 6
     articles = articles[:limiter]
+
+    # Print first article
+    logging.info("First article: %s", articles[0])
 
     # Add "body" key to each news article object
     for article in articles:
