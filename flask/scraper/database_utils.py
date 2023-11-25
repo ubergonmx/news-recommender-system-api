@@ -1,5 +1,18 @@
 import sqlite3, os
 
+# Configuration
+db_name = "newsmead.sqlite"
+db_insert_query = """
+    INSERT INTO articles
+    (date, category, source, title, author, url, body, image_url, read_time)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """
+
+
+def db_path():
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    return os.path.join(script_dir, db_name)
+
 
 def run_query(conn, query):
     conn.cursor().execute(query)
@@ -22,7 +35,7 @@ def show_table(conn, table_name):
     return conn.execute(f"SELECT * FROM {table_name}").fetchall()
 
 
-def insert_data(conn, insert_query, data):
+def insert_data(conn, data, insert_query=db_insert_query):
     conn.cursor().executemany(insert_query, data)
     conn.commit()
 
