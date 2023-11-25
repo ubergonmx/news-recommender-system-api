@@ -91,13 +91,23 @@ class NewsScraper:
             # Parse the article using newspaper3k
             news_article = Article(response.url)
             news_article.download()
-            news_article.parse()
+
+            # Check if the article was successfully downloaded
+            if news_article.download_state == 2:
+                # Parse the article
+                news_article.parse()
+            else:
+                # Print the error code
+                print("Article download state:", news_article.download_state)
+                # Return a flag to remove the article from the list
+                return False
 
             # Add the article's body, author, and read time to the dictionary
             article["body"] = news_article.text
             article["author"] = (
                 author.strip().title()
-                if author is not None and news_article.authors[0] != author
+                if author is not None
+                and news_article.authors[0] != author.strip().title()
                 else news_article.authors[0].strip().title()
             )
             article["read_time"] = str(readtime.of_text(news_article.text))
@@ -108,6 +118,11 @@ class NewsScraper:
         except Exception as e:
             # logging.error("Error parsing article: %s", str(e))
             print("Error parsing article: ", str(e))
+            # Return a flag to remove the article from the list
+            return False
+
+        # Return a flag to keep the article in the list
+        return True
 
     def insert_articles(self, articles):
         print("Inserting articles...")
@@ -196,7 +211,10 @@ class GMANews(NewsScraper):
 
         # for article in articles:
         for article in articles[:2]:
-            self.scrape_article(article)
+            success = self.scrape_article(article)
+            # Remove the article from the list if it was not successfully parsed
+            if not success:
+                articles.remove(article)
 
         # Insert the articles to the database
         self.insert_articles(articles[:2])
