@@ -52,15 +52,15 @@ class NewsScraper:
 
     def scrape(self):
         if self.provider == Provider.GMANews:
-            return GMANews().scrape()
+            return GMANews(self.conn).scrape()
         elif self.provider == Provider.Philstar:
-            return Philstar().scrape()
+            return Philstar(self.conn).scrape()
         elif self.provider == Provider.News5:
-            return News5().scrape()
+            return News5(self.conn).scrape()
         elif self.provider == Provider.ManilaBulletin:
-            return ManilaBulletin().scrape()
+            return ManilaBulletin(self.conn).scrape()
         elif self.provider == Provider.INQUIRER:
-            return Inquirer().scrape()
+            return Inquirer(self.conn).scrape()
         else:
             raise Exception("Invalid provider")
 
@@ -73,10 +73,14 @@ class NewsScraper:
             soup = BeautifulSoup(response.content, "html.parser")
             author = soup.find("meta", {"name": "author"})
 
+            print("Progress - parsed author")
+
             # Parse the article using newspaper3k
-            news_article = Article(response)
+            news_article = Article(response.url)
             news_article.download()
             news_article.parse()
+
+            print("Progress - parsed article (newspaper3k)")
 
             # Add the article's body, author, and read time to the dictionary
             article["body"] = news_article.text
@@ -85,18 +89,33 @@ class NewsScraper:
             )
             article["read_time"] = str(readtime.of_text(news_article.text))
 
-            # Insert the article to the database
-            insert_data(conn=self.conn, data=[article])
+            print("Progress - added body, author, and read time")
 
             # Print the article
             print(article)
 
-            # Sleep for 1 minute
-            sleep(60)
+            # Sleep for 1 second
+            sleep(1)
 
         except Exception as e:
             # logging.error("Error parsing article: %s", str(e))
             print("Error parsing article: ", str(e))
+
+    def insert_articles(self, articles):
+        data = []
+        for article in articles:
+            # Convert the article to a tuple and add it to the data list
+            data.append(
+                (
+                    article["title"],
+                    article["link"],
+                    article["description"],
+                    article["body"],
+                    article["author"],
+                    article["read_time"],
+                )
+            )
+        insert_data(conn=self.conn, data=data)
 
     def __enter__(self):
         return self
@@ -106,7 +125,7 @@ class NewsScraper:
 
 
 class GMANews(NewsScraper):
-    def __init__(self):
+    def __init__(self, conn):
         self.url = "https://data.gmanetwork.com/gno/rss/[category]/feed.xml"
         self.category_map = {
             Category.News: "news",
@@ -117,6 +136,7 @@ class GMANews(NewsScraper):
             Category.Business: "money",
             Category.Entertainment: "showbiz",
         }
+        self.conn = conn
 
     def parse_rss(self, url, category_map):
         articles = []
@@ -169,39 +189,45 @@ class GMANews(NewsScraper):
         for article in articles:
             self.scrape_article(article)
 
+        # Insert the articles to the database
+        self.insert_articles(articles)
+
+        print("Done scraping GMANews")
+
     def scrape_article_custom(self, article):
         # Download the article
         response = requests.get(article["url"])
 
         # Check if the article was successfully downloaded
-        if response.status_code == 200:
-            # Parse the HTML document
-            soup = BeautifulSoup(response.content, "html.parser")
+        # if response.status_code == 200:
+        #     # Parse the HTML document
+        #     soup = BeautifulSoup(response.content, "html.parser")
 
-            # Get author in meta tag
-            author = soup.find("meta", {"name": "author"})
+        #     # Get author in meta tag
+        #     author = soup.find("meta", {"name": "author"})
 
-            # Extract the article's body
-            body = soup.find("div", {"class": "article-content"})
-            body = body.text if body is not None else None
+        #     # Extract the article's body
+        #     body = soup.find("div", {"class": "article-content"})
+        #     body = body.text if body is not None else None
 
-            # Extract the article's author
-            author = soup.find("div", {"class": "author"})
-            author = author.text if author is not None else None
+        #     # Extract the article's author
+        #     author = soup.find("div", {"class": "author"})
+        #     author = author.text if author is not None else None
 
-            # Add the body and author to the article dictionary
-            article["body"] = body
-            article["author"] = author
-            article["read_time"] = str(readtime.of_text(body))
+        #     # Add the body and author to the article dictionary
+        #     article["body"] = body
+        #     article["author"] = author
+        #     article["read_time"] = str(readtime.of_text(body))
 
-            # Insert the article to the database
-            insert_data(conn=self.conn, data=[article])
+        #     # Insert the article to the database
+        #     insert_data(conn=self.conn, data=[article])
 
-            # Print the article
-            print(article)
+        #     # Print the article
+        #     print(article)
 
-            # Sleep for 1 minute
-            sleep(60)
+        #     # Sleep for 1 minute
+        #     sleep(60)
+        pass
 
 
 class Philstar:
