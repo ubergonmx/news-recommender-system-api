@@ -3,7 +3,7 @@ import sqlite3, os
 # Configuration
 db_name = "newsmead.sqlite"
 db_tbl_articles = "articles"
-db_insert_query = """
+db_insert_query = f"""
     INSERT INTO {db_tbl_articles}
     (date, category, source, title, author, url, body, image_url, read_time)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)

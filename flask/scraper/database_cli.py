@@ -32,7 +32,7 @@ if not (table_exists(conn, table_name)):
                 author TEXT,
                 url TEXT,
                 body TEXT,
-                image_url TEXT
+                image_url TEXT,
                 read_time TEXT
             );
             """
@@ -51,10 +51,9 @@ while True:
         print(show_table(conn, table_name))
     elif ans == "2":
         if input("Are you sure?? (y/n): ") == "y":
-            if input("Super sure?? (y/n): ") == "y":
-                if input("This process is NOT reversible. Last chance (y/n): ") == "y":
-                    delete = f"DROP TABLE {table_name}"
-                    run_query(conn, delete)
+            if input("This process is NOT reversible. Last chance (y/n): ") == "y":
+                delete = f"DROP TABLE {table_name}"
+                run_query(conn, delete)
 
         print(f'Deleted "{table_name}".')
         conn.close()
