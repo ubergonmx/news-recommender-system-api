@@ -115,8 +115,8 @@ class NewsScraper:
 
             article["read_time"] = str(readtime.of_text(news_article.text))
 
-            # Sleep for 1 second
-            sleep(1)
+            # Sleep for 5 seconds
+            sleep(5)
 
         except Exception as e:
             # logging.error("Error parsing article: %s", str(e))
@@ -211,20 +211,19 @@ class GMANews(NewsScraper):
 
     def scrape(self):
         articles = self.parse_rss(self.url, self.category_map)
-
-        i = 0  # Counter for the number of articles
-        for article in articles[:10]:
+        article_limit = 15
+        i = 0
+        for article in articles[:article_limit]:
             i += 1
             print("Parsing article #", i, ": ", article["url"], sep="")
             success = self.scrape_article(article)
-            # Remove the article from the list if it was not successfully parsed
             if not success:
                 articles.remove(article)
 
         # Insert the articles to the database
-        self.insert_articles(articles[:2])
+        self.insert_articles(articles[:article_limit])
 
-        print("Done scraping GMANews")
+        print("Done scraping GMA News")
 
     def scrape_article_custom(self, article):
         # Download the article
