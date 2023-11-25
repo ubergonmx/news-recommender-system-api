@@ -14,7 +14,6 @@ from recommenders.models.newsrec.models.naml import NAMLModel
 from recommenders.models.newsrec.io.mind_all_iterator import MINDAllIterator
 
 from scraper.database_utils import db_path, get_articles
-from scraper.scraper import NewsScraper, Provider
 
 # Configure the logging level and format
 logging.basicConfig(
@@ -84,8 +83,9 @@ def feed():
 def scrape():
     # Try-except block to handle errors
     try:
-        with NewsScraper(Provider.GMANews) as scraper:
-            scraper.scrape()
+        return jsonify("Scraping is disabled for now. Please use the feed endpoint.")
+        # with NewsScraper(Provider.GMANews) as scraper:
+        #     scraper.scrape()
     except Exception as e:
         logging.error(e)
         return jsonify(error=str(e)), 500
@@ -252,12 +252,18 @@ def status():
         logging.info("Getting system status")
         logging.info("Date and time: %s", datetime.now())
         logging.info("Python version: %s", sys.version)
+        logging.info("Memory usage (app): %s", sys.getsizeof(flask_app))
+        logging.info("Memory usage (conn): %s", sys.getsizeof(conn))
+        logging.info("SQLite db path: %s", db_path())
 
         # Return as a JSON response
         return jsonify(
             {
                 "date and time": str(datetime.now()),
                 "python version": sys.version,
+                "memory usage (app)": str(sys.getsizeof(flask_app)),
+                "memory usage (conn)": str(sys.getsizeof(conn)),
+                "sqlite db path": db_path(),
             }
         )
     except Exception as e:
