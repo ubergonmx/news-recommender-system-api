@@ -71,7 +71,13 @@ def feed():
         articles = get_articles(conn)
 
         # Return the feed as a JSON response
-        return jsonify(clean_articles_db(articles))
+        return jsonify(
+            {
+                "status": "ok",
+                "totalResults": len(articles),
+                "articles": clean_articles_db(articles),
+            }
+        )
 
     except Exception as e:
         logging.error(e)
@@ -128,8 +134,8 @@ def clean_articles_db(articles):
                 "author": article[5],
                 "url": article[6],
                 "body": article[7],
-                "image_url": article[8],
-                "read_time": article[9],
+                "imageUrl": article[8],
+                "readTime": article[9],
             }
         )
 
