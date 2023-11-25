@@ -2,8 +2,9 @@ import sqlite3, os
 
 # Configuration
 db_name = "newsmead.sqlite"
+db_tbl_articles = "articles"
 db_insert_query = """
-    INSERT INTO articles
+    INSERT INTO {db_tbl_articles}
     (date, category, source, title, author, url, body, image_url, read_time)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     """
@@ -41,4 +42,4 @@ def insert_data(conn, data, insert_query=db_insert_query):
 
 
 def db_exists(db_name):
-    return os.path.isfile(db_name)
+    return os.path.exists(db_path())
