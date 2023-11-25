@@ -50,26 +50,25 @@ while True:
     if ans == "1":
         print(show_table(conn, table_name))
     elif ans == "2":
-        if input("Are you sure?? (y/n): ") == "y":
-            if input("This process is NOT reversible. Last chance (y/n): ") == "y":
-                delete = f"DROP TABLE {table_name}"
-                run_query(conn, delete)
-                create = f"""
-                    CREATE TABLE {table_name}
-                    (
-                        article_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        date TEXT,
-                        category TEXT,
-                        source TEXT,
-                        title TEXT,
-                        author TEXT,
-                        url TEXT,
-                        body TEXT,
-                        image_url TEXT,
-                        read_time TEXT
-                    );
-                    """
-                run_query(conn, create)
+        if input("This process is NOT reversible. Are you sure (y/n): ") == "y":
+            delete = f"DROP TABLE {table_name}"
+            run_query(conn, delete)
+            create = f"""
+                CREATE TABLE {table_name}
+                (
+                    article_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    date TEXT,
+                    category TEXT,
+                    source TEXT,
+                    title TEXT,
+                    author TEXT,
+                    url TEXT,
+                    body TEXT,
+                    image_url TEXT,
+                    read_time TEXT
+                );
+                """
+            run_query(conn, create)
 
         print(f'Reset "{table_name}".')
         conn.close()
