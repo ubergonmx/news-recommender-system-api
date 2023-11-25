@@ -69,7 +69,6 @@ while True:
                         read_time TEXT
                     );
                     """
-
                 run_query(conn, create)
 
         print(f'Deleted "{table_name}".')
