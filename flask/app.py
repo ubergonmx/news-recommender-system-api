@@ -157,7 +157,7 @@ def parse():
         url = request.args.get("url")
 
         # Get the final URL for the article
-        final_url = requests.get("http://" + url).url
+        final_url = requests.get(url).url
 
         # Parse the article using newspaper3k
         logging.info("Parsing article %s", final_url)
@@ -165,8 +165,15 @@ def parse():
         news_article.download()
         news_article.parse()
 
-        # Return the article as a JSON response
-        return jsonify(news_article.text)
+        # Return the article author, text, time, source as a JSON response
+        return jsonify(
+            {
+                "authors": news_article.authors,
+                "text": news_article.text,
+                "time": news_article.publish_date,
+                "source": news_article.source_url,
+            }
+        )
     except Exception as e:
         logging.error(e)
         return jsonify(error=str(e)), 500
