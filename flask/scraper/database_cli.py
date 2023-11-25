@@ -71,7 +71,7 @@ while True:
                     """
                 run_query(conn, create)
 
-        print(f'Deleted "{table_name}".')
+        print(f'Reset "{table_name}".')
         conn.close()
         exit()
 
