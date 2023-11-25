@@ -44,10 +44,12 @@ if not (table_exists(conn, table_name)):
 
 while True:
     ans = input(
-        "\n\nUSE DB Browser for more features--\n\nWhat do you want to do?\n 1) Delete table \n 2) Exit \n\n >"
+        "\n\nUSE DB Browser for more features--\n\nWhat do you want to do?\n 1) Show table \n 2) Delete table \n 3) Exit \n\n >"
     )
 
     if ans == "1":
+        print(show_table(conn, table_name))
+    elif ans == "1":
         if input("Are you sure?? (y/n): ") == "y":
             if input("Super sure?? (y/n): ") == "y":
                 if input("This process is NOT reversible. Last chance (y/n): ") == "y":
@@ -58,12 +60,6 @@ while True:
         conn.close()
         exit()
 
-    elif ans == "2":
+    elif ans == "3":
         conn.close()
         quit()
-
-# insert = f"""
-#     INSERT INTO {table_name}
-#     (title, date, url, category, summary, content)
-#     VALUES (?, ?, ?, ?, ?, ?)
-#     """
