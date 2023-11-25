@@ -1,10 +1,10 @@
 import sqlite3, os
 from database_utils import table_exists, show_table, run_query, db_exists
 
-db_name = input("Enter database name: ") + ".sqlite"
-if not db_exists(db_name):
-    if input(f"Database does not exist. Create? (y/n): ") == "n":
-        exit()
+# db_name = input("Enter database name: ") + ".sqlite"
+# if not db_exists(db_name):
+#     if input(f"Database does not exist. Create? (y/n): ") == "n":
+#         exit()
 
 # Get the directory of the current script
 script_dir = os.path.dirname(os.path.abspath(__file__))
