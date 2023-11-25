@@ -1,8 +1,12 @@
 {
     "cSpell.words": [
         "googlenews",
+        "impr",
         "jsonify",
         "newsapi",
-        "readtime"
+        "preds",
+        "readtime",
+        "tqdm",
+        "vecs"
     ]
 }

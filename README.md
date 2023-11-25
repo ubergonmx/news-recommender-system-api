@@ -21,6 +21,8 @@ List of **GET** endpoints:
 
 ## How to run
 
+Note: Must have Python version 3.9 for recommenders package.
+
 1. Install requirements
 
 ```bash
