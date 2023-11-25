@@ -20,7 +20,7 @@ table_name = input("Enter table name: ")
 if not (table_exists(conn, table_name)):
     if input(f'Table "{table_name}" does not exist. Create? (y/n): ') == "y":
         # Create the table with the following columns
-        # article_id, date, category, source, title, author, url, body, image_url
+        # article_id, date, category, source, title, author, url, body, image_url, read_time
         create = f"""
             CREATE TABLE {table_name}
             (
@@ -33,6 +33,7 @@ if not (table_exists(conn, table_name)):
                 url TEXT,
                 body TEXT,
                 image_url TEXT
+                read_time TEXT
             );
             """
 
