@@ -49,7 +49,7 @@ while True:
 
     if ans == "1":
         print(show_table(conn, table_name))
-    elif ans == "1":
+    elif ans == "2":
         if input("Are you sure?? (y/n): ") == "y":
             if input("Super sure?? (y/n): ") == "y":
                 if input("This process is NOT reversible. Last chance (y/n): ") == "y":
