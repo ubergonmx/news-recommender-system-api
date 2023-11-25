@@ -220,8 +220,11 @@ class GMANews(NewsScraper):
             if not success:
                 articles.remove(article)
 
+        # Get articles that has only authors key
+        articles = list(filter(lambda article: "author" in article.keys(), articles))
+
         # Insert the articles to the database
-        self.insert_articles(articles[:article_limit])
+        self.insert_articles(articles)
 
         print("Done scraping GMA News")
 
