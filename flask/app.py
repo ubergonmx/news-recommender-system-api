@@ -1,5 +1,6 @@
 from datetime import datetime
-import sqlite3
+
+# import sqlite3
 import sys
 from flask import Flask, request, jsonify
 from newspaper import Article
@@ -8,13 +9,14 @@ from newsapi import NewsApiClient
 import logging
 import requests
 import readtime
-from recommenders.models.deeprec.deeprec_utils import download_deeprec_resources
-from recommenders.models.newsrec.newsrec_utils import prepare_hparams
-from recommenders.models.newsrec.models.naml import NAMLModel
-from recommenders.models.newsrec.io.mind_all_iterator import MINDAllIterator
 
-from scraper.database_utils import db_path, get_articles
-from scraper.scraper import NewsScraper, Provider
+# from recommenders.models.deeprec.deeprec_utils import download_deeprec_resources
+# from recommenders.models.newsrec.newsrec_utils import prepare_hparams
+# from recommenders.models.newsrec.models.naml import NAMLModel
+# from recommenders.models.newsrec.io.mind_all_iterator import MINDAllIterator
+
+# from scraper.database_utils import db_path, get_articles
+# from scraper.scraper import NewsScraper, Provider
 
 # Configure the logging level and format
 logging.basicConfig(
@@ -213,10 +215,10 @@ def parse():
         # Return the article author, text, time, source as a JSON response
         return jsonify(
             {
-                "authors": news_article.authors,
-                "text": news_article.text,
-                "time": news_article.publish_date,
-                "source": news_article.source_url,
+                # "authors": news_article.authors,
+                "body": news_article.text,
+                # "time": news_article.publish_date,
+                # "source": news_article.source_url,
             }
         )
     except Exception as e:
