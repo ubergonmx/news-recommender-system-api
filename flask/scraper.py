@@ -289,5 +289,5 @@ class Inquirer:
 
 
 # Test
-# with NewsScraper(Provider.GMANews) as scraper:
-#     scraper.scrape()
+with NewsScraper(Provider.GMANews) as scraper:
+    scraper.scrape()

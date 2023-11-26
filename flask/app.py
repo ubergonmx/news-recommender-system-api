@@ -15,8 +15,8 @@ import readtime
 # from recommenders.models.newsrec.models.naml import NAMLModel
 # from recommenders.models.newsrec.io.mind_all_iterator import MINDAllIterator
 
-# from scraper.database_utils import db_path, get_articles
-# from scraper.scraper import NewsScraper, Provider
+# from database_utils import db_path, get_articles
+# from scraper import NewsScraper, Provider
 
 # Configure the logging level and format
 logging.basicConfig(
@@ -88,17 +88,20 @@ def top():
 
 
 # Define a GET method for "scrape" endpoint
-# @flask_app.route("/scrape", methods=["GET"])
-# def scrape():
-#     # Try-except block to handle errors
-#     try:
-#         scraper = NewsScraper(Provider.GMANews, conn)
-#         scraper.scrape()
+@flask_app.route("/scrape", methods=["GET"])
+def scrape():
+    # Try-except block to handle errors
+    try:
+        # scraper = NewsScraper(Provider.GMANews)
+        # scraper.scrape()
 
-#         return jsonify({"status": "ok"})
-#     except Exception as e:
-#         logging.error(e)
-#         return jsonify(error=str(e)), 500
+        # Execute the scraper
+        exec(open("scraper.py").read())
+
+        return jsonify({"status": "ok"})
+    except Exception as e:
+        logging.error(e)
+        return jsonify(error=str(e)), 500
 
 
 # Define a GET method for "search" endpoint
