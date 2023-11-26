@@ -1,7 +1,7 @@
 from concurrent.futures import ThreadPoolExecutor
 from bs4 import BeautifulSoup
 from time import sleep
-from .database_utils import insert_data, db_path
+from database_utils import insert_data, db_path
 import requests, os, sqlite3
 from datetime import datetime
 from enum import Enum
