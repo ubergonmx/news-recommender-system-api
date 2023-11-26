@@ -88,20 +88,20 @@ def top():
 
 
 # Define a GET method for "scrape" endpoint
-@flask_app.route("/scrape", methods=["GET"])
-def scrape():
-    # Try-except block to handle errors
-    try:
-        # scraper = NewsScraper(Provider.GMANews)
-        # scraper.scrape()
+# @flask_app.route("/scrape", methods=["GET"])
+# def scrape():
+#     # Try-except block to handle errors
+#     try:
+#         # scraper = NewsScraper(Provider.GMANews)
+#         # scraper.scrape()
 
-        # Execute the scraper
-        exec(open("scraper.py").read())
+#         # Execute the scraper
+#         exec(open("scraper.py").read())
 
-        return jsonify({"status": "ok"})
-    except Exception as e:
-        logging.error(e)
-        return jsonify(error=str(e)), 500
+#         return jsonify({"status": "ok"})
+#     except Exception as e:
+#         logging.error(e)
+#         return jsonify(error=str(e)), 500
 
 
 # Define a GET method for "search" endpoint
