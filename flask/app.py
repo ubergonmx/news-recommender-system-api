@@ -1,6 +1,6 @@
 from datetime import datetime
 
-# import sqlite3
+import sqlite3
 import sys
 from flask import Flask, request, jsonify
 from newspaper import Article
@@ -15,7 +15,7 @@ import readtime
 # from recommenders.models.newsrec.models.naml import NAMLModel
 # from recommenders.models.newsrec.io.mind_all_iterator import MINDAllIterator
 
-from database_utils import db_path, get_articles
+from database_utils import db_path, get_articles, run_query, table_exists
 from scraper import NewsScraper, Provider
 
 # Configure the logging level and format
@@ -31,8 +31,8 @@ googlenews = GoogleNews(lang="en")
 # Configure the NewsAPI client
 newsapi = NewsApiClient(api_key="13328281630540aaa6c2750b76b5ee12")
 
-# # Connect to the SQLite database
-# conn = sqlite3.connect(db_path(), check_same_thread=False)
+# Connect to the SQLite database
+conn = sqlite3.connect(db_path(), check_same_thread=False)
 
 # Initialize the Flask application
 flask_app = Flask(__name__)
@@ -196,6 +196,56 @@ def clean_articles(articles):
             continue
 
     return articles
+
+
+# Define a GET method for "demo" endpoint
+@flask_app.route("/demo", methods=["GET"])
+def demo():
+    # Try-except block to handle errors
+    try:
+        # Start counting time
+        start = datetime.now()
+
+        # Create "news" table with the following columns
+        # url as primary key, body, image
+        if not table_exists(conn, "news"):
+            run_query(
+                conn, "CREATE TABLE news (url TEXT PRIMARY KEY, body TEXT, image TEXT)"
+            )
+
+        # Get top headlines from NewsAPI
+        top_headlines = newsapi.get_top_headlines(country="ph")
+
+        # For each article, parse the article using newspaper3k
+        for article in top_headlines["articles"]:
+            # Get the final URL for the article
+            final_url = requests.get(article["url"]).url
+
+            # Parse the article using newspaper3k
+            logging.info("Parsing article %s", final_url)
+            news_article = Article(final_url)
+            news_article.download()
+            news_article.parse()
+
+            # Add the article's body and image to the database
+            run_query(
+                conn,
+                f"INSERT INTO news VALUES ('{article['url']}', '{news_article.text}', '{news_article.top_image}')",
+            )
+
+        # Return OK status with time elapsed
+        return jsonify(
+            {
+                "status": "ok",
+                "time": str(datetime.now() - start),
+                "totalResults": len(result),
+                "articles": result,
+            }
+        )
+
+    except Exception as e:
+        logging.error(e)
+        return jsonify(error=str(e)), 500
 
 
 # Define a GET method for "parse" endpoint

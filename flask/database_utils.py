@@ -75,5 +75,6 @@ def insert_data(conn, data, insert_query=db_insert_query):
     conn.commit()
 
 
+# Fix this
 def db_exists(db_name):
     return os.path.exists(db_path())
