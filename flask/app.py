@@ -207,42 +207,78 @@ def demo():
         start = datetime.now()
 
         # Create "news" table with the following columns
-        # url as primary key, body, image
+        # id as primary key, url,  body, image
         if not table_exists(conn, "news"):
             run_query(
-                conn, "CREATE TABLE news (url TEXT PRIMARY KEY, body TEXT, image TEXT)"
+                conn,
+                "CREATE TABLE news (id INTEGER PRIMARY KEY, url TEXT, body TEXT, image TEXT)",
             )
 
         # Get top headlines from NewsAPI
-        top_headlines = newsapi.get_top_headlines(country="ph")
+        url = "https://newsapi.org/v2/top-headlines?country=ph&apiKey=13328281630540aaa6c2750b76b5ee12"
+        top_headlines = requests.get(url).json()
 
-        # For each article, parse the article using newspaper3k
+        # Count the number of articles
+        logging.info("Number of articles: %d", len(top_headlines["articles"]))
+
+        # For each article, parse the article using newspaper3k and append to data
+        data = []
         for article in top_headlines["articles"]:
             # Get the final URL for the article
             final_url = requests.get(article["url"]).url
 
             # Parse the article using newspaper3k
             logging.info("Parsing article %s", final_url)
-            news_article = Article(final_url)
-            news_article.download()
-            news_article.parse()
+            try:
+                news_article = Article(final_url)
+                news_article.download()
+                news_article.parse()
 
-            # Add the article's body and image to the database
-            run_query(
-                conn,
-                f"INSERT INTO news VALUES ('{article['url']}', '{news_article.text}', '{news_article.top_image}')",
-            )
+                # Append the article to the data list
+                logging.info("Appending article %s", final_url)
+                data.append(
+                    (
+                        final_url,
+                        news_article.text,
+                        news_article.top_image,
+                    )
+                )
+            except Exception as e:
+                logging.error("Error parsing article: %s", str(e))
+                continue
+
+        # Insert the data into the database
+        logging.info("Inserting data into database")
+        conn.cursor().executemany(
+            "INSERT INTO news (url, body, image) VALUES (?, ?, ?)", data
+        )
+        conn.commit()
 
         # Return OK status with time elapsed
         return jsonify(
             {
                 "status": "ok",
                 "time": str(datetime.now() - start),
-                "totalResults": len(result),
-                "articles": result,
+                "totalResults": len(data),
             }
         )
 
+    except Exception as e:
+        logging.error(e)
+        return jsonify(error=str(e)), 500
+
+
+# Define a GET method for "demoreset" endpoint
+@flask_app.route("/demoreset", methods=["GET"])
+def demoreset():
+    # Try-except block to handle errors
+    try:
+        # Drop the "news" table
+        logging.info("Dropping table")
+        run_query(conn, "DROP TABLE news")
+
+        # Return OK status
+        return jsonify({"status": "ok"})
     except Exception as e:
         logging.error(e)
         return jsonify(error=str(e)), 500
@@ -256,23 +292,34 @@ def parse():
         # Get the query string from the query parameters
         url = request.args.get("url")
 
-        # Get the final URL for the article
-        final_url = requests.get(url).url
+        # Find url in database
+        logging.info("Finding article %s", url)
+        result = conn.execute(
+            f"SELECT (body, image) FROM news WHERE url='{url}'"
+        ).fetchone()
 
-        # Parse the article using newspaper3k
-        logging.info("Parsing article %s", final_url)
-        news_article = Article(final_url)
-        news_article.download()
-        news_article.parse()
+        if result is None:
+            # Parse the article using newspaper3k
+            logging.info("Parsing article %s", url)
+            news_article = Article(url)
+            news_article.download()
+            news_article.parse()
 
-        # Return the article author, text, time, source as a JSON response
+            # Return the article body, image as a JSON response
+            return jsonify(
+                {
+                    "body": news_article.text,
+                    "image": news_article.top_image,
+                }
+            )
+
+        # Return the article body, image as a JSON response
         return jsonify(
             {
-                # "authors": news_article.authors,
-                "body": news_article.text,
-                "image": news_article.top_image,
-                # "time": news_article.publish_date,
-                # "source": news_article.source_url,
+                # "body": news_article.text,
+                # "image": news_article.top_image,
+                "body": result[0] if result[0] is not None else "",
+                "image": result[1] if result[1] is not None else "",
             }
         )
     except Exception as e:
@@ -317,7 +364,7 @@ def status():
         logging.info("Date and time: %s", datetime.now())
         logging.info("Python version: %s", sys.version)
         logging.info("Memory usage (app): %s", sys.getsizeof(flask_app))
-        # logging.info("Memory usage (conn): %s", sys.getsizeof(conn))
+        logging.info("Memory usage (conn): %s", sys.getsizeof(conn))
         logging.info("SQLite db path: %s", db_path())
 
         # Return as a JSON response
@@ -326,7 +373,7 @@ def status():
                 "date and time": str(datetime.now()),
                 "python version": sys.version,
                 "memory usage (app)": str(sys.getsizeof(flask_app)),
-                # "memory usage (conn)": str(sys.getsizeof(conn)),
+                "memory usage (conn)": str(sys.getsizeof(conn)),
                 "sqlite db path": db_path(),
             }
         )
