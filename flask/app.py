@@ -295,7 +295,7 @@ def parse():
         # Find url in database
         logging.info("Finding article %s", url)
         result = conn.execute(
-            f"SELECT (body, image) FROM news WHERE url='{url}'"
+            f"SELECT body, image FROM news WHERE url='{url}'"
         ).fetchone()
 
         if result is None:
