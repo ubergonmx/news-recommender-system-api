@@ -15,8 +15,8 @@ import readtime
 # from recommenders.models.newsrec.models.naml import NAMLModel
 # from recommenders.models.newsrec.io.mind_all_iterator import MINDAllIterator
 
-# from database_utils import db_path, get_articles
-# from scraper import NewsScraper, Provider
+from database_utils import db_path, get_articles
+from scraper import NewsScraper, Provider
 
 # Configure the logging level and format
 logging.basicConfig(
@@ -66,42 +66,42 @@ def top():
 
 
 # Define a GET method for "feed" endpoint
-# @flask_app.route("/feed", methods=["GET"])
-# def feed():
-#     # Try-except block to handle errors
-#     try:
-#         # Get articles from the database
-#         articles = get_articles(conn)
+@flask_app.route("/feed", methods=["GET"])
+def feed():
+    # Try-except block to handle errors
+    try:
+        # Get articles from the database
+        articles = get_articles(conn)
 
-#         # Return the feed as a JSON response
-#         return jsonify(
-#             {
-#                 "status": "ok",
-#                 "totalResults": len(articles),
-#                 "articles": clean_articles_db(articles),
-#             }
-#         )
+        # Return the feed as a JSON response
+        return jsonify(
+            {
+                "status": "ok",
+                "totalResults": len(articles),
+                "articles": clean_articles_db(articles),
+            }
+        )
 
-#     except Exception as e:
-#         logging.error(e)
-#         return jsonify(error=str(e)), 500
+    except Exception as e:
+        logging.error(e)
+        return jsonify(error=str(e)), 500
 
 
 # Define a GET method for "scrape" endpoint
-# @flask_app.route("/scrape", methods=["GET"])
-# def scrape():
-#     # Try-except block to handle errors
-#     try:
-#         # scraper = NewsScraper(Provider.GMANews)
-#         # scraper.scrape()
+@flask_app.route("/scrape", methods=["GET"])
+def scrape():
+    # Try-except block to handle errors
+    try:
+        scraper = NewsScraper(Provider.GMANews)
+        scraper.scrape()
 
-#         # Execute the scraper
-#         exec(open("scraper.py").read())
+        # Execute the scraper
+        # exec(open("scraper.py").read())
 
-#         return jsonify({"status": "ok"})
-#     except Exception as e:
-#         logging.error(e)
-#         return jsonify(error=str(e)), 500
+        return jsonify({"status": "ok"})
+    except Exception as e:
+        logging.error(e)
+        return jsonify(error=str(e)), 500
 
 
 # Define a GET method for "search" endpoint
@@ -268,7 +268,7 @@ def status():
         logging.info("Python version: %s", sys.version)
         logging.info("Memory usage (app): %s", sys.getsizeof(flask_app))
         # logging.info("Memory usage (conn): %s", sys.getsizeof(conn))
-        # logging.info("SQLite db path: %s", db_path())
+        logging.info("SQLite db path: %s", db_path())
 
         # Return as a JSON response
         return jsonify(
@@ -277,7 +277,7 @@ def status():
                 "python version": sys.version,
                 "memory usage (app)": str(sys.getsizeof(flask_app)),
                 # "memory usage (conn)": str(sys.getsizeof(conn)),
-                # "sqlite db path": db_path(),
+                "sqlite db path": db_path(),
             }
         )
     except Exception as e:
