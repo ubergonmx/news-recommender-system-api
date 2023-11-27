@@ -2,7 +2,7 @@ from datetime import datetime
 
 import sqlite3
 import sys
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, g
 from newspaper import Article
 from GoogleNews import GoogleNews
 from newsapi import NewsApiClient
@@ -31,11 +31,26 @@ googlenews = GoogleNews(lang="en")
 # Configure the NewsAPI client
 newsapi = NewsApiClient(api_key="13328281630540aaa6c2750b76b5ee12")
 
-# Connect to the SQLite database
-conn = sqlite3.connect(db_path(), check_same_thread=False)
-
 # Initialize the Flask application
 flask_app = Flask(__name__)
+
+# Connect to the SQLite database
+# conn = sqlite3.connect(db_path(), check_same_thread=False)
+DATABASE = db_path()
+
+
+def get_db():
+    db = getattr(g, "_database", None)
+    if db is None:
+        db = g._database = sqlite3.connect(DATABASE)
+    return db
+
+
+@flask_app.teardown_appcontext
+def close_connection(exception):
+    db = getattr(g, "_database", None)
+    if db is not None:
+        db.close()
 
 
 # Error handler for incorrect URL
@@ -71,7 +86,7 @@ def feed():
     # Try-except block to handle errors
     try:
         # Get articles from the database
-        articles = get_articles(conn)
+        articles = get_articles(get_db())
 
         # Return the feed as a JSON response
         return jsonify(
@@ -208,9 +223,9 @@ def demo():
 
         # Create "news" table with the following columns
         # id as primary key, url,  body, image
-        if not table_exists(conn, "news"):
+        if not table_exists(get_db(), "news"):
             run_query(
-                conn,
+                get_db(),
                 "CREATE TABLE news (id INTEGER PRIMARY KEY, url TEXT, body TEXT, image TEXT)",
             )
 
@@ -249,10 +264,10 @@ def demo():
 
         # Insert the data into the database
         logging.info("Inserting data into database")
-        conn.cursor().executemany(
+        get_db().cursor().executemany(
             "INSERT INTO news (url, body, image) VALUES (?, ?, ?)", data
         )
-        conn.commit()
+        get_db().commit()
 
         # Return OK status with time elapsed
         return jsonify(
@@ -275,7 +290,7 @@ def demoreset():
     try:
         # Drop the "news" table
         logging.info("Dropping table")
-        run_query(conn, "DROP TABLE news")
+        run_query(get_db(), "DROP TABLE news")
 
         # Return OK status
         return jsonify({"status": "ok"})
@@ -294,9 +309,11 @@ def parse():
 
         # Find url in database
         logging.info("Finding article %s", url)
-        result = conn.execute(
-            f"SELECT body, image FROM news WHERE url='{url}'"
-        ).fetchone()
+        result = (
+            get_db()
+            .execute(f"SELECT body, image FROM news WHERE url='{url}'")
+            .fetchone()
+        )
 
         if result is None:
             # Parse the article using newspaper3k
@@ -364,7 +381,7 @@ def status():
         logging.info("Date and time: %s", datetime.now())
         logging.info("Python version: %s", sys.version)
         logging.info("Memory usage (app): %s", sys.getsizeof(flask_app))
-        logging.info("Memory usage (conn): %s", sys.getsizeof(conn))
+        logging.info("Memory usage (get_db()): %s", sys.getsizeof(get_db()))
         logging.info("SQLite db path: %s", db_path())
 
         # Return as a JSON response
@@ -373,7 +390,7 @@ def status():
                 "date and time": str(datetime.now()),
                 "python version": sys.version,
                 "memory usage (app)": str(sys.getsizeof(flask_app)),
-                "memory usage (conn)": str(sys.getsizeof(conn)),
+                "memory usage (get_db())": str(sys.getsizeof(get_db())),
                 "sqlite db path": db_path(),
             }
         )
