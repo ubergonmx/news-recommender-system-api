@@ -236,7 +236,7 @@ def demo():
         # Count the number of articles
         logging.info("Number of articles: %d", len(top_headlines["articles"]))
 
-        # For each article, parse the article using newspaper3k and append to data
+        # For each article, parse the article using newspaper3k and append to database
         data = []
         for article in top_headlines["articles"]:
             try:
