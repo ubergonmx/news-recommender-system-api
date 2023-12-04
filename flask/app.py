@@ -239,12 +239,13 @@ def demo():
         # For each article, parse the article using newspaper3k and append to data
         data = []
         for article in top_headlines["articles"]:
-            # Get the final URL for the article
-            final_url = requests.get(article["url"]).url
-
-            # Parse the article using newspaper3k
-            logging.info("Parsing article %s", final_url)
             try:
+                # Get the final URL for the article
+                logging.info("Getting final URL for %s", article["url"])
+                final_url = requests.get(article["url"]).url
+
+                # Parse the article using newspaper3k
+                logging.info("Parsing article %s", final_url)
                 news_article = Article(final_url)
                 news_article.download()
                 news_article.parse()
@@ -258,6 +259,9 @@ def demo():
                         news_article.top_image,
                     )
                 )
+
+                # Add the article to the database
+                logging.info("Inserted article %s into database", final_url)
             except Exception as e:
                 logging.error("Error parsing article: %s", str(e))
                 continue
