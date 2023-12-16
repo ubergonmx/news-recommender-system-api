@@ -1,6 +1,11 @@
-# News Recommender System API
+# DEPRECATED
+This project is no longer maintained; please consider using [https://github.com/ubergonmx/newsmead-api](https://github.com/ubergonmx/newsmead-api) instead.
 
-A news recommender API built with Flask/Python for NewsMead mobile app.
+-----
+
+# NewsMead API
+
+A news recommender API built with Flask/Python for the NewsMead mobile app.
 
 ## Tech Stack
 
